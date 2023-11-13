@@ -61,6 +61,8 @@ let nextItemDist;
 let coinItemCount;
 let nextItemSide;
 let multiplier;
+let lives;
+let coinsCollected;
 
 function update() {
   if (!ticks) {
@@ -69,6 +71,8 @@ function update() {
     nextItemDist = coinItemCount = 0;
     nextItemSide = 1;
     multiplier = 1;
+    lives = 0;
+    coinsCollected = 0;
   }
   //How fast the items move down
   const scroll = difficulty * 0.4;
@@ -136,9 +140,14 @@ function update() {
       const c = char("e", i.pos).isColliding;
       if (c.char.a || c.char.b) {
         play("coin");
-        addScore(multiplier, i.pos);
+        addScore(multiplier * difficulty, i.pos);
         multiplier = clamp(multiplier + 1, 1, 99);
         player.ty += (99 - player.ty) * 0.1;
+        coinsCollected++;
+        if(coinsCollected>=15){
+          lives++;
+          coinsCollected -= 20;
+        }
         return true;
       }
       //Makes sure items aren't overlapping
@@ -158,8 +167,14 @@ function update() {
       const c = char("c", i.pos).isColliding;
       //ends game if player touches red boxes
       if(c.char.a || c.char.b){
-        play("explosion");
-        end();
+        if(lives <= 0){
+          play("explosion");
+          end();
+        }else{
+          lives--;
+          play("synth");
+          return true; 
+        }
       }
       //Makes sure items aren't overlapping
       if (c.char.c) {
@@ -195,4 +210,9 @@ function update() {
   //ground
   color("black");
   rect(0, 94, 100, 6);
+  //Life counter
+  if(lives > -1){
+    color("light_black");
+    text("lives: " + lives, 5, 96);
+  }
 }
